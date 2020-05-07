@@ -2,12 +2,18 @@ package com.ayeshapp.tictactoe;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.annotation.SuppressLint;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
+import android.util.Pair;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.TextView;
+
+import java.util.ArrayList;
+import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -114,20 +120,73 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public boolean move(int x,int y) {
+    public boolean move(final int x, final int y) {
         if(!win && grid[x][y] == 0) {
             grid[x][y] = player[turn];
-            textView[x][y].setText(symbol[turn]);
-            checkWin(x,y);
+            if (turn == 0) {
+                //Animation animation = AnimationUtils.loadAnimation(this, R.anim.fadein);
+                textView[x][y].setText(symbol[turn]);
+                checkWin(x,y);
+                turn = 1 - turn;
+                if (turn == 1) moveComputer();
+                //textView[x][y].startAnimation(animation);
+            } else {
+                Handler hd = new Handler();
+                hd.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        textView[x][y].setText(symbol[turn]);
+                        checkWin(x,y);
+                        turn = 1 - turn;
+                        if (turn == 1) moveComputer();
+                    }
+                }, 500);
+            }
+            /*checkWin(x,y);
             turn = 1 - turn;
+            if (turn == 1) moveComputer();*/
             return true;
         }
         return false;
     }
 
+    public void moveComputer() {
+        ArrayList<Pair<Integer,Integer>> empty = new ArrayList<>();
+        int cnt = 0;
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                if (grid[i][j] == 0) {
+                    cnt++;
+                    Pair<Integer,Integer> p = new Pair<>(i,j);
+                    grid[i][j] = player[turn];
+                    if (checkWin(i,j, player[turn])) {
+                        grid[i][j] = 0;
+                        move(i,j);
+                        return;
+                    }
+                    grid[i][j] = player[1-turn];
+                    if (checkWin(i,j, player[1-turn])) {
+                        grid[i][j] = 0;
+                        move(i,j);
+                        return;
+                    }
+                    grid[i][j] = 0;
+                    empty.add(p);
+                }
+            }
+        }
+        if (cnt == 0) return;
+        Random rn = new Random();
+        int index = rn.nextInt(cnt);
+        Pair<Integer,Integer> p = empty.get(index);
+
+        move(p.first,p.second);
+    }
+
 
     public void resetGrid() {
         win = false;
+        turn = 0;
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 grid[i][j] = 0;
@@ -136,6 +195,69 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+    }
+
+    private boolean checkWin(int x, int y, int find) {
+        boolean flag = false;
+        //horizonta
+        for (int i = 0; i < 3; i++) {
+            if (grid[x][i] != find) {
+                flag = true;
+                break;
+            }
+        }
+        if (flag) {
+            flag = false;
+        } else {
+            return true;
+        }
+
+        //vertical
+        for (int i = 0; i < 3; i++) {
+            if (grid[i][y] != find) {
+                flag = true;
+                break;
+            }
+        }
+
+        if (flag) {
+            flag = false;
+        } else {
+            return true;
+        }
+
+        //diagonal
+        if (x == y) {
+            for (int i = 0; i < 3; i++) {
+                if (grid[i][i] != find) {
+                    flag = true;
+                    break;
+                }
+            }
+            if (flag) {
+                flag = false;
+            } else {
+                return true;
+            }
+        }
+
+
+
+        //antidiagonal
+        if (x + y == 2) {
+            for (int i = 0; i < 3; i++) {
+                if (grid[i][2-i] != find) {
+                    flag = true;
+                    break;
+                }
+            }
+            if (flag) {
+                flag = false;
+            } else {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void checkWin(int x, int y) {
@@ -211,7 +333,5 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
-
-
     }
 }
