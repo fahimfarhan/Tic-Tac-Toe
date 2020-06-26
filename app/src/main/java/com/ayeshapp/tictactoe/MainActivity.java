@@ -1,6 +1,7 @@
 package com.ayeshapp.tictactoe;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 
 import android.graphics.Color;
 import android.os.Bundle;
@@ -12,6 +13,8 @@ import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.ayeshapp.tictactoe.gameviewmodel.GameViewModel;
+
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -21,11 +24,7 @@ public class MainActivity extends AppCompatActivity {
     private Button reset;
     private boolean win = false;
 
-    private int[][] grid = {
-            {0,0,0},
-            {0,0,0},
-            {0,0,0},
-    };
+    private GameViewModel gameViewModel;
 
     private TextView[][] textView = new TextView[3][3];
 
@@ -37,6 +36,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        gameViewModel = new ViewModelProvider(MainActivity.this).get(GameViewModel.class);
+
 
         textView[0][0] = findViewById(R.id.field_00);
         textView[0][0].setOnClickListener(new View.OnClickListener() {
@@ -118,18 +120,31 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+     // todo: reset the current state
+        int[][] tempGrid = gameViewModel.getGridLiveData().getValue().getGrid();
+        for(int i=0; i<3; i++) {
+            for(int j=0; j<3; j++) {
+                if(tempGrid[i][j] == 1) {
+                    textView[i][j].setText("X");
+                }else if(tempGrid[i][j] == 2){
+                    textView[i][j].setText("0");
+                }
+            }
+        }
+
     }
 
     public boolean move(final int x, final int y) {
-        if(!win && grid[x][y] == 0) {
-            grid[x][y] = player[turn];
+        if(!win && gameViewModel.getGridLiveData().getValue().getNumber(x,y) == 0) {
+            gameViewModel.getGridLiveData().getValue().setNumber(x,y, player[turn]);
+//            grid[x][y] = player[turn];
             if (turn == 0) {
-                //Animation animation = AnimationUtils.loadAnimation(this, R.anim.fadein);
+                Animation animation = AnimationUtils.loadAnimation(this, R.anim.fadein);
                 textView[x][y].setText(symbol[turn]);
                 checkWin(x,y);
                 turn = 1 - turn;
                 if (turn == 1) moveComputer();
-                //textView[x][y].startAnimation(animation);
+                textView[x][y].startAnimation(animation);
             } else {
                 Handler hd = new Handler();
                 hd.postDelayed(new Runnable() {
@@ -155,22 +170,28 @@ public class MainActivity extends AppCompatActivity {
         int cnt = 0;
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
-                if (grid[i][j] == 0) {
+//                if (grid[i][j] == 0) {
+                if(gameViewModel.getGridLiveData().getValue().getNumber(i,j) == 0){
                     cnt++;
                     Pair<Integer,Integer> p = new Pair<>(i,j);
-                    grid[i][j] = player[turn];
+//                    grid[i][j] = player[turn];
+                    gameViewModel.getGridLiveData().getValue().setNumber(i,j, player[turn]);
                     if (checkWin(i,j, player[turn])) {
-                        grid[i][j] = 0;
+//                        grid[i][j] = 0;
+                        gameViewModel.getGridLiveData().getValue().setNumber(i,j, 0);
                         move(i,j);
                         return;
                     }
-                    grid[i][j] = player[1-turn];
+//                    grid[i][j] = player[1-turn];
+                    gameViewModel.getGridLiveData().getValue().setNumber(i,j, player[1-turn]);
                     if (checkWin(i,j, player[1-turn])) {
-                        grid[i][j] = 0;
+//                        grid[i][j] = 0;
+                        gameViewModel.getGridLiveData().getValue().setNumber(i,j, 0);
                         move(i,j);
                         return;
                     }
-                    grid[i][j] = 0;
+//                    grid[i][j] = 0;
+                    gameViewModel.getGridLiveData().getValue().setNumber(i,j, 0);
                     empty.add(p);
                 }
             }
@@ -187,9 +208,10 @@ public class MainActivity extends AppCompatActivity {
     public void resetGrid() {
         win = false;
         turn = 0;
+        gameViewModel.getGridLiveData().getValue().resetGrid();
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
-                grid[i][j] = 0;
+//                grid[i][j] = 0;
                 textView[i][j].setText("");
                 textView[i][j].setBackgroundColor(Color.parseColor("#E0E0E0"));
             }
@@ -201,7 +223,8 @@ public class MainActivity extends AppCompatActivity {
         boolean flag = false;
         //horizonta
         for (int i = 0; i < 3; i++) {
-            if (grid[x][i] != find) {
+//            if (grid[x][i] != find) {
+            if(gameViewModel.getGridLiveData().getValue().getNumber(x,i) != find) {
                 flag = true;
                 break;
             }
@@ -214,7 +237,8 @@ public class MainActivity extends AppCompatActivity {
 
         //vertical
         for (int i = 0; i < 3; i++) {
-            if (grid[i][y] != find) {
+//            if (grid[i][y] != find) {
+            if(gameViewModel.getGridLiveData().getValue().getNumber(i,y) != find) {
                 flag = true;
                 break;
             }
@@ -229,7 +253,8 @@ public class MainActivity extends AppCompatActivity {
         //diagonal
         if (x == y) {
             for (int i = 0; i < 3; i++) {
-                if (grid[i][i] != find) {
+//                if (grid[i][i] != find) {
+                if(gameViewModel.getGridLiveData().getValue().getNumber(i,i) != find) {
                     flag = true;
                     break;
                 }
@@ -246,7 +271,8 @@ public class MainActivity extends AppCompatActivity {
         //antidiagonal
         if (x + y == 2) {
             for (int i = 0; i < 3; i++) {
-                if (grid[i][2-i] != find) {
+//                if (grid[i][2-i] != find) {
+                if(gameViewModel.getGridLiveData().getValue().getNumber(i,(2 - i) )!= find) {
                     flag = true;
                     break;
                 }
@@ -261,11 +287,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void checkWin(int x, int y) {
-        int find = grid[x][y];
+//        int find = grid[x][y];
+        int find = gameViewModel.getGridLiveData().getValue().getNumber(x,y);
         boolean flag = false;
         //horizonta
         for (int i = 0; i < 3; i++) {
-            if (grid[x][i] != find) {
+//            if (grid[x][i] != find) {
+            if(gameViewModel.getGridLiveData().getValue().getNumber(x,i) != find) {
                 flag = true;
                 break;
             }
@@ -281,7 +309,8 @@ public class MainActivity extends AppCompatActivity {
 
         //vertical
         for (int i = 0; i < 3; i++) {
-            if (grid[i][y] != find) {
+//            if (grid[i][y] != find) {
+            if(gameViewModel.getGridLiveData().getValue().getNumber(i,y) != find) {
                 flag = true;
                 break;
             }
@@ -299,7 +328,8 @@ public class MainActivity extends AppCompatActivity {
         //diagonal
         if (x == y) {
             for (int i = 0; i < 3; i++) {
-                if (grid[i][i] != find) {
+//                if (grid[i][i] != find) {
+                if(gameViewModel.getGridLiveData().getValue().getNumber(i,i) != find) {
                     flag = true;
                     break;
                 }
@@ -319,7 +349,8 @@ public class MainActivity extends AppCompatActivity {
         //antidiagonal
         if (x + y == 2) {
             for (int i = 0; i < 3; i++) {
-                if (grid[i][2-i] != find) {
+//                if (grid[i][2-i] != find) {
+                if(gameViewModel.getGridLiveData().getValue().getNumber(i, (2-i) ) != find) {
                     flag = true;
                     break;
                 }
