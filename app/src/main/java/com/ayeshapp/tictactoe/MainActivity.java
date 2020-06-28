@@ -39,6 +39,8 @@ public class MainActivity extends AppCompatActivity {
 
         gameViewModel = new ViewModelProvider(MainActivity.this).get(GameViewModel.class);
 
+        win = gameViewModel.getGridLiveData().getValue().isWin();
+
 
         textView[0][0] = findViewById(R.id.field_00);
         textView[0][0].setOnClickListener(new View.OnClickListener() {
@@ -128,6 +130,17 @@ public class MainActivity extends AppCompatActivity {
                     textView[i][j].setText("X");
                 }else if(tempGrid[i][j] == 2){
                     textView[i][j].setText("0");
+                }
+            }
+        }
+
+        if(gameViewModel.getGridLiveData().getValue().isWin()) {
+            tempGrid = gameViewModel.getGridLiveData().getValue().getState();
+            for(int i=0; i<3; i++) {
+                for(int j=0; j<3; j++) {
+                    if(tempGrid[i][j] == 1) {
+                        textView[i][j].setBackgroundColor(Color.parseColor("#00C853"));
+                    }
                 }
             }
         }
@@ -232,6 +245,7 @@ public class MainActivity extends AppCompatActivity {
         if (flag) {
             flag = false;
         } else {
+            //gameViewModel.getGridLiveData().getValue().setWin(true);
             return true;
         }
 
@@ -247,6 +261,7 @@ public class MainActivity extends AppCompatActivity {
         if (flag) {
             flag = false;
         } else {
+            //gameViewModel.getGridLiveData().getValue().setWin(true);
             return true;
         }
 
@@ -262,6 +277,7 @@ public class MainActivity extends AppCompatActivity {
             if (flag) {
                 flag = false;
             } else {
+                //gameViewModel.getGridLiveData().getValue().setWin(true);
                 return true;
             }
         }
@@ -280,6 +296,7 @@ public class MainActivity extends AppCompatActivity {
             if (flag) {
                 flag = false;
             } else {
+                //gameViewModel.getGridLiveData().getValue().setWin(true);
                 return true;
             }
         }
@@ -301,9 +318,11 @@ public class MainActivity extends AppCompatActivity {
         if (flag) {
             flag = false;
         } else {
+            gameViewModel.getGridLiveData().getValue().setWin(true);
             win = true;
             for (int i = 0; i < 3; i++) {
                 textView[x][i].setBackgroundColor(Color.parseColor("#00C853"));
+                gameViewModel.getGridLiveData().getValue().setState(x,i,1);
             }
         }
 
@@ -320,8 +339,10 @@ public class MainActivity extends AppCompatActivity {
             flag = false;
         } else {
             win = true;
+            gameViewModel.getGridLiveData().getValue().setWin(true);
             for (int i = 0; i < 3; i++) {
                 textView[i][y].setBackgroundColor(Color.parseColor("#00C853"));
+                gameViewModel.getGridLiveData().getValue().setState(i,y,1);
             }
         }
 
@@ -338,8 +359,10 @@ public class MainActivity extends AppCompatActivity {
                 flag = false;
             } else {
                 win = true;
+                gameViewModel.getGridLiveData().getValue().setWin(true);
                 for (int i = 0; i < 3; i++) {
                     textView[i][i].setBackgroundColor(Color.parseColor("#00C853"));
+                    gameViewModel.getGridLiveData().getValue().setState(i,i,1);
                 }
             }
         }
@@ -359,8 +382,10 @@ public class MainActivity extends AppCompatActivity {
                 flag = false;
             } else {
                 win = true;
+                gameViewModel.getGridLiveData().getValue().setWin(true);
                 for (int i = 0; i < 3; i++) {
                     textView[i][2-i].setBackgroundColor(Color.parseColor("#00C853"));
+                    gameViewModel.getGridLiveData().getValue().setState(i,2-i,1);
                 }
             }
         }
